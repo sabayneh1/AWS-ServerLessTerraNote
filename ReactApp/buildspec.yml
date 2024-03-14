@@ -1,0 +1,44 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing dependencies"
+
+  pre_build:
+    commands:
+      - echo "Navigating to React app directory and installing node modules"
+      - ls
+      - cd reactApp/my-notes-app
+      - npm install --legacy-peer-deps
+      - echo "Importing environment variables from terraform_outputs.env..."
+      - ls
+      - pwd
+      - cat ../../updated_outputs.env
+      - source ../../updated_outputs.env
+      - echo "Imported Environment Variables:"
+      - printenv
+      - echo "Setting Environment Variables in .env for the build"
+      - echo "REACT_APP_COGNITO_USER_POOL_ID=${REACT_APP_COGNITO_USER_POOL_ID}" > .env
+      - echo "REACT_APP_COGNITO_USER_POOL_CLIENT_ID=${REACT_APP_COGNITO_USER_POOL_CLIENT_ID}" >> .env
+      - echo "REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}" >> .env
+      - echo "Content of .env file:"
+      - cat .env
+
+  build:
+    commands:
+      - echo "Building React app"
+      - chmod +x node_modules/.bin/react-scripts
+      - npm run build
+
+  post_build:
+    commands:
+      - echo "Deploying to S3 Bucket"
+      - aws s3 sync build/ s3://notebook-k9sudbzc-prod --delete
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: 'build_outputs/reactApp/my-notes-app/build'
