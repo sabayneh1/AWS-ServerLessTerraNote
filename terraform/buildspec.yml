@@ -1,0 +1,49 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing dependencies"
+      - cd terraform
+      - curl -o terraform.zip https://releases.hashicorp.com/terraform/1.0.0/terraform_1.0.0_linux_amd64.zip
+      - unzip -o terraform.zip -d /usr/local/bin/
+      - terraform --version
+  pre_build:
+    commands:
+      - echo "Initiating Terraform..."
+  build:
+    commands:
+      - pwd # Ensure we are in the project root
+      - ls -l # Debugging: List files to verify location
+      - cd .. # Make sure we start from the project root
+      - sed -i 's/\r$//' ./terraform/update_env_with_terraform_outputs.sh
+      - chmod +x ./terraform/update_env_with_terraform_outputs.sh
+      - pwd 
+      - sh ./terraform/update_env_with_terraform_outputs.sh
+  post_build:
+    commands:
+      - echo "Build completed on `date`"
+      - echo "test start started `date`"
+      - pwd # Ensure we are in the project root
+      - ls -l # Debugging: List files to verify location
+    #   - cd .. # Make sure we start from the project root
+    #   - sed -i 's/\r$//' ./terraform/test_deployment.sh
+    #   - chmod +x ./terraform/test_deployment.sh
+    #   - pwd 
+    #   - sh ./terraform/test_deployment.sh
+      - echo "Copying Chalice and React app directories to build_outputs..."
+      - mkdir -p build_outputs_prod/chalice build_outputs_prod/reactApp
+      - ls
+      - pwd
+      - cp -R ./chalice/* build_outputs_prod/chalice/
+      - cp -R ./reactApp/* build_outputs_prod/reactApp/
+      - cp -R ./buildspec.yaml build_outputs_prod/buildspec.yaml
+      - cp -R ./test_api.sh build_outputs_prod/test_api.sh
+      - cp -R ./testNumber2.txt build_outputs_prod/testNumber2.txt
+      - ls build_outputs_prod/chalice/
+      - ls build_outputs_prod/reactApp/
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: build_outputs_prod
