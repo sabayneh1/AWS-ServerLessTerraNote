@@ -1,0 +1,52 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "Installing Chalice..."
+      - pip install chalice
+      - ls
+      - pwd
+  pre_build:
+    commands:
+      - echo "Pre-build phase commands"
+  build:
+    commands:
+      # Ensure we're in the right directory
+      - cd chalice/Serverless_web
+      # Deploy using Chalice, extract the API URL, and create/update the updated_outputs.env
+      - |
+        API_URL=$(chalice deploy --no-autogen-policy | grep -Po '(?<=Rest API URL: ).*')
+        echo "API URL: $API_URL"
+        # Ensure existing variables are carried over and the new API URL is appended
+        cp ../../terraform_outputs.env ../../updated_outputs.env
+        echo "REACT_APP_API_BASE_URL=$API_URL" >> ../../updated_outputs.env
+        echo "Updated environment variables:"
+        cat ../../updated_outputs.env
+  post_build:
+    commands:
+      - echo "Chalice deployment completed on `date`"
+      - cat ../../updated_outputs.env
+      - ls -l ../../
+      - echo "Copying Chalice and React app directories to build_outputs..."
+      - cd $CODEBUILD_SRC_DIR # Ensure you are at the root
+      - mkdir -p build_outputs/chalice build_outputs/reactApp
+      - ls
+      - pwd
+    
+      - cp -R ./reactApp/* ./build_outputs/reactApp/
+      - cp -R ./buildspec.yaml ./build_outputs/buildspec.yaml
+      - cp -R ./test_api.sh ./build_outputs/test_api.sh
+      - cp -R ./testNumber2.txt ./build_outputs/testNumber2.txt
+      - cp -R ./updated_outputs.env ./build_outputs/updated_outputs.env 
+      
+      
+      - ls build_outputs/reactApp/
+      - cat build_outputs/updated_outputs.env 
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: build_outputs
