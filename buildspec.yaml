@@ -1,0 +1,35 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Preparing for tests..."
+      - pwd  # Print current working directory to verify path
+      - ls -l # List files in the current directory for debugging
+      - |
+        if [ -f ./updated_outputs.env ]; then 
+          cat ./updated_outputs.env  # Debug: view file content
+          source ./updated_outputs.env
+          echo "Imported API URL: $REACT_APP_API_BASE_URL"
+        else 
+          echo "updated_outputs.env does not exist, skipping..."
+        fi
+  build:
+    commands:
+      - |
+        echo "Running API tests..."
+        if [ ! -z "$REACT_APP_API_BASE_URL" ]; then
+          # Adding a new note
+          curl -X POST "${REACT_APP_API_BASE_URL}/notes" -H "Content-Type: application/json" -d '{"noteId": "sampleNoteId", "content": "This is a sample note content."}'
+          # Adding another note
+          curl -X POST "${REACT_APP_API_BASE_URL}/notes" -H "Content-Type: application/json" -d '{"noteId": "2", "content": "This is a test note"}'
+          # Getting a note by ID
+          curl "${REACT_APP_API_BASE_URL}/notes/2"
+          # Generating a pre-signed URL for file upload
+          curl -X POST "${REACT_APP_API_BASE_URL}/generate-presigned-url/upload" -H "Content-Type: application/json" -d '{"file_name": "testNumber2.txt"}'
+        else
+          echo "REACT_APP_API_BASE_URL is not set. Skipping API tests."
+        fi
+  post_build:
+    commands:
+      - echo "API testing completed on `date`"
