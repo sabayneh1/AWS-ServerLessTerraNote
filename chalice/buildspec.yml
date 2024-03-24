@@ -18,7 +18,9 @@ phases:
       - cd chalice/Serverless_web
       # Deploy using Chalice, extract the API URL, and create/update the updated_outputs.env
       - |
-        API_URL=$(chalice deploy --no-autogen-policy | grep -Po '(?<=Rest API URL: ).*')
+        chalice delete --stage prod || echo "No existing Chalice deployment to delete or delete operation failed. Continuing..."
+      - |
+        API_URL=$(chalice deploy --stage prod | grep -Po '(?<=Rest API URL: ).*')
         echo "API URL: $API_URL"
         # Ensure existing variables are carried over and the new API URL is appended
         cp ../../terraform_outputs.env ../../updated_outputs.env

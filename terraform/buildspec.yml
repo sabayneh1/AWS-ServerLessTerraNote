@@ -32,18 +32,18 @@ phases:
     #   - pwd 
     #   - sh ./terraform/test_deployment.sh
       - echo "Copying Chalice and React app directories to build_outputs..."
-      - mkdir -p build_outputs_prod/chalice build_outputs_prod/reactApp
+      - mkdir -p build_outputs/chalice build_outputs/reactApp
       - ls
       - pwd
-      - cp -R ./chalice/* build_outputs_prod/chalice/
-      - cp -R ./reactApp/* build_outputs_prod/reactApp/
-      - cp -R ./buildspec.yaml build_outputs_prod/buildspec.yaml
-      - cp -R ./test_api.sh build_outputs_prod/test_api.sh
-      - cp -R ./testNumber2.txt build_outputs_prod/testNumber2.txt
-      - ls build_outputs_prod/chalice/
-      - ls build_outputs_prod/reactApp/
+      - cp -R ./chalice/* build_outputs/chalice/
+      - cp -R ./reactApp/* build_outputs/reactApp/
+      - cp -R ./buildspec.yaml build_outputs/buildspec.yaml
+      - cp -R ./test_api.sh build_outputs/test_api.sh
+      - cp -R ./testNumber2.txt build_outputs/testNumber2.txt
+      - ls build_outputs/chalice/
+      - ls build_outputs/reactApp/
 
 artifacts:
   files:
     - "**/*"
-  base-directory: build_outputs_prod
+  base-directory: build_outputs

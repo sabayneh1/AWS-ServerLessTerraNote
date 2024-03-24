@@ -57,5 +57,5 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
 resource "aws_cloudfront_origin_access_identity" "oai" {
   comment = "OAI for accessing S3 bucket content"
-  #depends_on = [ var.bucket_id ]
+  depends_on = [ var.bucket_id ]
 }
