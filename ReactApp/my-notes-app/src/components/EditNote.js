@@ -1,27 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Container, TextField, Box, Paper } from '@mui/material';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// Import faUpload along with faSearch
+import { faSearch, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fas } from '@fortawesome/free-solid-svg-icons';
+import UploadFile from './UploadFile';
+library.add(fas);
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-const EditNote = ({ onSave }) => {
+const Home = () => {
+  const [notes, setNotes] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [noteContent, setNoteContent] = useState('');
-  const { noteId } = useParams(); // This will be undefined for new notes
-  const navigate = useNavigate();
+  const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [file, setFile] = useState(null); // State for the file to be uploaded
 
   useEffect(() => {
-    const fetchNoteContent = async () => {
-      if (noteId) { // Only fetch content if editing an existing note
-        try {
-          const response = await axios.get(`${API_BASE_URL}/notes/${noteId}`);
-          setNoteContent(response.data.content);
-        } catch (error) {
-          console.error('Failed to fetch note:', error);
-        }
-      }
-    };
-    fetchNoteContent();
-  }, [noteId]);
+    if (!isCreating) {
+      fetchNotes();
+    }
+  }, [isCreating]);
+
+  const fetchNotes = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/notes`);
+      setNotes(response.data);
+    } catch (error) {
+      setError("An error occurred while fetching notes.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchTerm) {
+      fetchNotes();
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/notes/${searchTerm}`);
+      setNotes([response.data]); // Display only the searched note
+      setEditingNoteId(searchTerm);
+      setNoteContent(response.data.content);
+    } catch (error) {
+      setError("An error occurred while fetching the note.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleNoteChange = (event) => {
     setNoteContent(event.target.value);
@@ -29,168 +65,129 @@ const EditNote = ({ onSave }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    const noteData = { content: noteContent };
     try {
-      if (noteId) {
-        // Update existing note
-        await axios.put(`${API_BASE_URL}/notes/${noteId}`, { content: noteContent });
-        console.log('Note updated successfully');
-      } else {
-        // Create new note
-        const response = await axios.post(`${API_BASE_URL}/notes`, { content: noteContent });
-        const newNoteId = response.data.noteId; // Assuming your API responds with the created note's ID
-        console.log('Note created successfully, ID:', newNoteId);
-        navigate(`/notes/edit/${newNoteId}`); // Redirect to edit the new note
+      if (isCreating) {
+        await axios.post(`${API_BASE_URL}/notes`, { noteId: searchTerm, ...noteData });
+        alert("Note created successfully!");
+      } else if (editingNoteId) {
+        await axios.put(`${API_BASE_URL}/notes/${editingNoteId}`, noteData);
+        alert("Note updated successfully!");
       }
-      onSave(); // Trigger any post-save actions
+      setIsCreating(false);
+      setNoteContent('');
+      setSearchTerm('');
+      fetchNotes();
     } catch (error) {
-      console.error('Failed to save note:', error);
+      setError("An error occurred while saving the note.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleCreateNewNote = () => {
+    setIsCreating(true);
+    setEditingNoteId(null);
+    setNoteContent('');
+  };
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      alert('Please select a file first.');
+      return;
+    }
+
+    try {
+      const apiUrl = `${API_BASE_URL}/generate-presigned-url/upload`;
+      const presignedUrlResponse = await axios.post(apiUrl, {
+        file_name: file.name,
+      });
+
+      const { url } = presignedUrlResponse.data;
+      await axios.put(url, file, {
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+      });
+
+      alert('File uploaded successfully!');
+    } catch (error) {
+      console.error('Error during file upload:', error);
+      alert('Failed to upload file.');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <textarea
-        value={noteContent}
-        onChange={handleNoteChange}
-        placeholder="Enter your note content here..."
-        rows="10"
-        cols="50"
-      ></textarea>
-      <br />
-      <button type="submit">{noteId ? 'Save Changes' : 'Create Note'}</button>
-    </form>
+    <div>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6">Notebook Project</Typography>
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Box display="flex" alignItems="center" mb={2}>
+          <TextField
+            label="Note ID"
+            variant="outlined"
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ mr: 1, flexGrow: 1 }}
+          />
+          <Button onClick={handleSearch} variant="contained" color="primary" startIcon={<FontAwesomeIcon icon={faSearch} />} sx={{ mr: 1 }}>
+            Search
+          </Button>
+          <Button onClick={handleCreateNewNote} variant="outlined" color="primary" sx={{ mr: 1 }}>
+            Create New
+          </Button>
+        </Box>
+        {isLoading && <Typography>Loading...</Typography>}
+        {error && <Typography color="error">{error}</Typography>}
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 3 }}>
+          <TextField
+            label="Note Content"
+            multiline
+            rows={4}
+            fullWidth
+            value={noteContent}
+            onChange={handleNoteChange}
+            variant="outlined"
+            sx={{ mb: 2 }}
+          />
+          <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mb: 2 }}>
+            {isCreating ? "Create Note" : "Save Note"}
+          </Button>
+        </Box>
+        {!isCreating && (
+          <Paper elevation={3} sx={{ p: 2, mt: 3 }}>
+            {notes.map((note) => (
+              <Box key={note.noteId} sx={{ mb: 2 }}>
+                <Typography variant="h6">{note.noteId}</Typography>
+                <Typography>{note.content}</Typography>
+                <Button onClick={() => { setEditingNoteId(note.noteId); setNoteContent(note.content); setIsCreating(false); }} variant="contained" color="primary" sx={{ mt: 1 }}>
+                  Edit
+                </Button>
+              </Box>
+            ))}
+          </Paper>
+        )}
+        {/* Improved UploadFile Component Integration */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 3 }}>
+          <UploadFile />
+        </Box>
+      </Container>
+    </div>
   );
 };
 
-export default EditNote;
+export default Home;
 
 
 
 
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-// import { v4 as uuidv4 } from 'uuid';
-// import { useParams } from 'react-router-dom'; // Import useParams hook
-
-
-// // Manually inserting the API base URL
-// const API_BASE_URL = "https://9ruk2kjb04.execute-api.ca-central-1.amazonaws.com/api";
-
-// const EditNote = ({ noteId, onSave }) => {
-//   const [noteContent, setNoteContent] = useState('');
-
-//   useEffect(() => {
-//     const fetchNote = async () => {
-//       try {
-//         const response = await axios.get(`${API_BASE_URL}/notes/${noteId}`);
-//         setNoteContent(response.data.content);
-//       } catch (error) {
-//         console.error('Failed to fetch note:', error);
-//         alert('An error occurred while fetching the note.');
-//       }
-//     };
-
-//     if (noteId) {
-//       fetchNote();
-//     }
-//   }, [noteId]);
-
-//   const handleNoteChange = (event) => {
-//     setNoteContent(event.target.value);
-//   };
-
-//   const handleSubmit = async (event) => {
-//     event.preventDefault();
-//     try {
-//       if (noteId) {
-//         await axios.put(`${API_BASE_URL}/notes/${noteId}`, { content: noteContent });
-//       } else {
-//         await axios.post(`${API_BASE_URL}/notes`, { noteId: uuidv4(), content: noteContent });
-//       }
-//       console.log('Note saved successfully');
-//       onSave();
-//     } catch (error) {
-//       console.error('Failed to save note:', error);
-//       alert('An error occurred while saving the note.');
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <h2>{noteId ? 'Edit Note' : 'Create Note'}</h2>
-//       <form onSubmit={handleSubmit}>
-//         <textarea
-//           value={noteContent}
-//           onChange={handleNoteChange}
-//           placeholder="Edit your note here..."
-//           rows={5}
-//           cols={50}
-//         ></textarea>
-//         <br />
-//         <button type="submit">{noteId ? 'Save Changes' : 'Create Note'}</button>
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default EditNote;
-
-
-
-
-
-// the below is with the congitoo  ####################################################################################################
-
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-
-// function EditNote({ noteId, initialContent, onSave }) {
-//   const [noteContent, setNoteContent] = useState(initialContent); // Initialized with the current note content
-
-//   const handleNoteChange = (event) => {
-//     setNoteContent(event.target.value); // Update the note content as the user types
-//   };
-
-//   const handleSubmit = async (event) => {
-//     event.preventDefault();
-//     try {
-//       // Assuming your API expects a PUT request to update the note
-//       // Replace `YOUR_API_ENDPOINT` with your actual endpoint URL
-//       // and ensure it's configured to accept PUT requests for updating notes
-//       const response = await axios.put(`'https://x6rhrkzq20.execute-api.ca-central-1.amazonaws.com/api/notes${noteId}`, {
-//         content: noteContent,
-//       });
-
-//       console.log('Note updated successfully:', response.data);
-//       onSave(); // Callback function to trigger after saving changes (e.g., to refresh the list of notes)
-//     } catch (error) {
-//       console.error('Failed to update note:', error);
-//       alert('An error occurred while saving the note.');
-//     }
-//   };
-
-//   useEffect(() => {
-//     console.log("EditNote component mounted");
-//     // Additional initialization code can be added here
-
-//   }, []); // Run this effect only once on component mount
-
-//   return (
-//     <div>
-//       <h2>Edit Note</h2>
-//       <form onSubmit={handleSubmit}>
-//         <textarea
-//           value={noteContent}
-//           onChange={handleNoteChange}
-//           placeholder="Edit your note here..."
-//           rows={5}
-//           cols={50}
-//         ></textarea>
-//         <br />
-//         <button type="submit">Save Changes</button>
-//       </form>
-//     </div>
-//   );
-// }
-
-// export default EditNote;

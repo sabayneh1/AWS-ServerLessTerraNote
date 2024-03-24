@@ -1,3 +1,9 @@
+// This is the main App component where the routing and authentication logic is handled.
+// The component first checks if the user is authenticated, showing the SignIn component if not.
+// Once authenticated, the MyStyledApp component is used for global styling.
+// Routes are defined for different paths like '/', '/notes/edit/:noteId', and '/upload'.
+// Additional routes can be added as needed for the application.
+
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
@@ -41,42 +47,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-// import React, { useEffect } from 'react';
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import Home from './components/Home'; // Assuming Home component exists
-// import EditNote from './components/EditNote';
-// import MyStyledApp from './components/MyStyledApp'; // Assuming MyStyledApp is for global styles or layout
-// import UploadFile from './components/UploadFile'; // Import the UploadFile component
-
-// function App() {
-//     useEffect(() => {
-//         console.log("App component mounted");
-//     }, []); // Log only once when the component mounts
-
-//     const handleSave = () => {
-//         // Redirect to home after saving a note
-//         window.location.href = '/';
-//     };
-
-//     return (
-//         <Router>
-//             <div>
-//                 <Routes>
-//                     <Route path="/" element={<Home />} />
-//                     {/* Adjusted the path to match your previous setup */}
-//                     <Route path="/notes/edit/:noteId" element={<EditNote onSave={handleSave} />} />
-//                     <Route path="/upload" element={<UploadFile />} />
-//                     {/* You can add more routes as needed */}
-//                 </Routes>
-//                 <MyStyledApp />
-//             </div>
-//         </Router>
-//     );
-// }
-
-// export default App;

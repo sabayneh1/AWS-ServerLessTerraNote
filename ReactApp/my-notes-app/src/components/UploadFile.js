@@ -1,7 +1,16 @@
+/**
+ * Functional component that allows users to upload a file to a server using presigned URLs.
+ * @returns JSX element containing file input and upload button
+ */
 import React, { useState } from 'react';
 
+/**
+ * Functional component for uploading a file.
+ * Sets the selected file using useState hook and provides a way to handle file upload.
+ * @returns JSX element containing file input and upload button.
+ */
 const UploadFile = () => {
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState(null);  // 
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -14,9 +23,9 @@ const UploadFile = () => {
     }
 
     try {
-      // Manually setting the API base URL
+
       const apiUrl  = process.env.REACT_APP_API_BASE_URL;
-      // const apiUrl = "https://q36zfljb6j.execute-api.ca-central-1.amazonaws.com/api";
+
 
       // Fetch presigned URL
       const presignedUrlResponse = await fetch(`${apiUrl}/generate-presigned-url/upload`, {

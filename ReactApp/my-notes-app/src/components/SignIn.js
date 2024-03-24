@@ -2,59 +2,65 @@ import React, { useState } from 'react';
 import { CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
 import UserPool from './UserPool';
 
+// Component for user sign-in using Amazon Cognito
 const SignIn = ({ onSignIn }) => {
+  // State for user inputs and flow control
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [isNewPasswordRequired, setIsNewPasswordRequired] = useState(false);
-  // Declare user as a state variable
-  const [user, setUser] = useState(null);
+  const [newPassword, setNewPassword] = useState(''); // Required for new password challenge
+  const [isNewPasswordRequired, setIsNewPasswordRequired] = useState(false); // Flag for new password challenge
+  const [user, setUser] = useState(null); // Holds the current Cognito user object
 
+  // Handles form submission for sign-in
   const onSubmit = (event) => {
-    event.preventDefault();
+    event.preventDefault(); // Prevent default form submission behavior
 
+    // Initialize Cognito user object with provided username and user pool
     const cognitoUser = new CognitoUser({
       Username: username,
       Pool: UserPool,
     });
 
+    // Authentication details with username and password
     const authDetails = new AuthenticationDetails({
       Username: username,
       Password: password,
     });
 
+    // Authenticate the user with Cognito
     cognitoUser.authenticateUser(authDetails, {
       onSuccess: (data) => {
-        console.log('onSuccess:', data);
-        onSignIn();
+        console.log('onSuccess:', data); // Log success
+        onSignIn(); // Invoke callback on successful sign-in
       },
       onFailure: (err) => {
-        console.error('onFailure:', err);
+        console.error('onFailure:', err); // Log failure
       },
       newPasswordRequired: (userAttributes, requiredAttributes) => {
-        console.log('newPasswordRequired:', userAttributes);
-        setIsNewPasswordRequired(true);
-        setUser(cognitoUser); // Save the user instance to state
+        console.log('newPasswordRequired:', userAttributes); // Log new password challenge
+        setIsNewPasswordRequired(true); // Trigger UI for new password input
+        setUser(cognitoUser); // Save user object for later use
       },
     });
   };
 
+  // Handles the new password challenge form submission
   const handleNewPasswordSubmit = async (event) => {
     event.preventDefault();
-    // Since `user` is now stored in state, it's accessible here
     if (user) {
       user.completeNewPasswordChallenge(newPassword, {}, {
         onSuccess: (data) => {
-          console.log('Password changed successfully', data);
-          onSignIn();
+          console.log('Password changed successfully', data); // Log success
+          onSignIn(); // Invoke callback on successful password update
         },
         onFailure: (err) => {
-          console.error('Failed to change password:', err);
+          console.error('Failed to change password:', err); // Log failure
         },
       });
     }
   };
 
+  // Render the form
   return (
     <div>
       <form onSubmit={isNewPasswordRequired ? handleNewPasswordSubmit : onSubmit}>
@@ -84,67 +90,3 @@ const SignIn = ({ onSignIn }) => {
 };
 
 export default SignIn;
-
-
-
-// import React, { useState } from 'react';
-// import { CognitoUser, AuthenticationDetails, CognitoUserPool } from 'amazon-cognito-identity-js';
-
-// const Login = () => {
-//   const [username, setUsername] = useState('');
-//   const [password, setPassword] = useState('');
-
-//   // const userPool = new CognitoUserPool({
-//   //   UserPoolId: process.env.REACT_APP_USER_POOL_ID,
-//   //   ClientId: process.env.REACT_APP_APP_CLIENT_ID
-//   // });
-
-//   const userPool = new CognitoUserPool({
-//     UserPoolId: 'ca-central-1_WTr0Kot6y',
-//     ClientId: 's2m96h3qodiqmcapj5u4rgv88'
-//   });
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     const authenticationData = {
-//       Username: username,
-//       Password: password
-//     };
-
-//     const authenticationDetails = new AuthenticationDetails(authenticationData);
-//     const userData = {
-//       Username: username,
-//       Pool: userPool
-//     };
-
-//     const cognitoUser = new CognitoUser(userData);
-
-//     cognitoUser.authenticateUser(authenticationDetails, {
-//       onSuccess: (result) => {
-//         console.log('Authentication successful');
-//         const idToken = result.getIdToken().getJwtToken();
-//         // Use this ID token in the Authorization header for your API requests
-
-//         // Add your logic here to handle the ID token, e.g., store it in local storage or state
-//       },
-//       onFailure: (err) => {
-//         console.error('Authentication failed', err);
-//         // Handle authentication failure
-//       }
-//     });
-//   };
-
-//   return (
-//     <div>
-//       <h2>Login</h2>
-//       <form onSubmit={handleSubmit}>
-//         <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-//         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-//         <button type="submit">Login</button>
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default Login;

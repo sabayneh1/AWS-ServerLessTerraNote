@@ -3,42 +3,42 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 20
+      nodejs: 20  # Specifies the runtime version of Node.js to use.
     commands:
-      - echo "Installing dependencies"
+      - echo "Installing dependencies"  # Outputs a message to indicate the start of dependency installation.
 
   pre_build:
     commands:
       - echo "Navigating to React app directory and installing node modules"
-      - ls
-      - cd reactApp/my-notes-app
-      - npm install --legacy-peer-deps
+      - ls  # Lists files in the current directory for verification.
+      - cd reactApp/my-notes-app  # Changes directory to the React app's root directory.
+      - npm install --legacy-peer-deps  # Installs node dependencies, avoiding peer dependency conflicts.
       - echo "Importing environment variables from terraform_outputs.env..."
-      - ls
-      - pwd
-      - cat ../../updated_outputs.env
-      - source ../../updated_outputs.env
+      - ls  # Lists files again for verification, especially after directory change.
+      - pwd  # Prints the current working directory to confirm the correct path.
+      - cat ../../updated_outputs.env  # Displays the contents of updated_outputs.env for debugging.
+      - source ../../updated_outputs.env  # Sources environment variables from updated_outputs.env for use in the build process.
       - echo "Imported Environment Variables:"
-      - printenv
+      - printenv  # Prints all environment variables to confirm successful import.
       - echo "Setting Environment Variables in .env for the build"
-      - echo "REACT_APP_COGNITO_USER_POOL_ID=${REACT_APP_COGNITO_USER_POOL_ID}" > .env
-      - echo "REACT_APP_COGNITO_USER_POOL_CLIENT_ID=${REACT_APP_COGNITO_USER_POOL_CLIENT_ID}" >> .env
-      - echo "REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}" >> .env
+      - echo "REACT_APP_COGNITO_USER_POOL_ID=${REACT_APP_COGNITO_USER_POOL_ID}" > .env  # Sets the Cognito User Pool ID environment variable.
+      - echo "REACT_APP_COGNITO_USER_POOL_CLIENT_ID=${REACT_APP_COGNITO_USER_POOL_CLIENT_ID}" >> .env  # Adds Cognito User Pool Client ID to the .env.
+      - echo "REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}" >> .env  # Adds the API base URL to the .env file.
       - echo "Content of .env file:"
-      - cat .env
+      - cat .env  # Displays the contents of the .env file for debugging and verification.
 
   build:
     commands:
       - echo "Building React app"
-      - chmod +x node_modules/.bin/react-scripts
-      - npm run build
+      - chmod +x node_modules/.bin/react-scripts  # Ensures the react-scripts binary is executable.
+      - npm run build  # Executes the build script defined in package.json to build the React app.
 
   post_build:
     commands:
       - echo "Deploying to S3 Bucket"
-      - aws s3 sync build/ s3://notebook-k9sudbzc-prod --delete
+      - aws s3 sync build/ s3://notebook-k9sudbzc-prod --delete  # Syncs the build directory to the specified S3 bucket, deleting any files in the bucket that are not present in the source directory.
 
 artifacts:
   files:
-    - '**/*'
-  base-directory: 'build_outputs/reactApp/my-notes-app/build'
+    - '**/*'  # Specifies that all files in the build directory should be considered build artifacts.
+  base-directory: 'build_outputs/reactApp/my-notes-app/build'  # Sets the base directory for artifacts to the build directory of the React app.

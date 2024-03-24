@@ -1,3 +1,7 @@
+// This is the Home component where notes management and display logic is implemented.
+// The component fetches notes from the API and allows searching, creating, editing, and saving notes.
+// It also provides functionality for uploading files and displays notes in a user-friendly interface.
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AppBar, Toolbar, Typography, Button, Container, TextField, Box, Paper } from '@mui/material';
@@ -9,9 +13,17 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 import UploadFile from './UploadFile';
 library.add(fas);
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+/**
+ * Functional component representing the Home page.
+ * Manages state for notes, search term, note content, creation status, loading status, error,
+ * editing note ID, and file upload.
+ * @returns JSX element displaying the Home page content.
+ */
 
 const Home = () => {
+  // State variables for managing notes, search term, note content, creating state, loading state, error handling, editing note id, and file to be uploaded
   const [notes, setNotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [noteContent, setNoteContent] = useState('');
@@ -21,12 +33,14 @@ const Home = () => {
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [file, setFile] = useState(null); // State for the file to be uploaded
 
+  // Effect hook to fetch notes when the component mounts or when creating a new note
   useEffect(() => {
     if (!isCreating) {
       fetchNotes();
     }
   }, [isCreating]);
 
+  // Function to fetch notes from the API
   const fetchNotes = async () => {
     setIsLoading(true);
     setError(null);
@@ -40,6 +54,7 @@ const Home = () => {
     }
   };
 
+  // Function to handle search functionality
   const handleSearch = async () => {
     if (!searchTerm) {
       fetchNotes();
@@ -59,9 +74,14 @@ const Home = () => {
     }
   };
 
+  // Function to handle changes in note content
   const handleNoteChange = (event) => {
     setNoteContent(event.target.value);
   };
+
+  // Function to handle form submission for creating or updating a note
+
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -102,7 +122,7 @@ const Home = () => {
       alert('Please select a file first.');
       return;
     }
-
+//
     try {
       const apiUrl = `${API_BASE_URL}/generate-presigned-url/upload`;
       const presignedUrlResponse = await axios.post(apiUrl, {
@@ -187,196 +207,3 @@ const Home = () => {
 };
 
 export default Home;
-
-
-
-
-
-
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-// import EditNote from './EditNote';
-// import UploadFile from './UploadFile';
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faSearch } from '@fortawesome/free-solid-svg-icons';
-
-// const API_BASE_URL = "https://ula9owg2j8.execute-api.ca-central-1.amazonaws.com/api";
-
-// const Home = () => {
-//   const [notes, setNotes] = useState([]);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [filteredNotes, setFilteredNotes] = useState([]); // State for filtered notes
-//   const [editingNoteId, setEditingNoteId] = useState(null);
-//   const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
-//   const [isLoading, setIsLoading] = useState(false); // For loading state
-//   const [error, setError] = useState(null); // For error state
-
-//   useEffect(() => {
-//     fetchNotes();
-//   }, []);
-
-//   const fetchNotes = async () => {
-//     setIsLoading(true);
-//     setError(null); // Reset error on retry
-//     try {
-//       const response = await axios.get(`${API_BASE_URL}/notes`);
-//       setNotes(response.data);
-//       setFilteredNotes(response.data); // Initialize filtered notes with all notes
-//     } catch (error) {
-//       console.error("Fetching notes failed: ", error); // Log the error to the console
-//       setError("An error occurred while fetching notes. Please try again.");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const fetchNote = async (noteId) => {
-//     setIsLoading(true);
-//     setError(null);
-//     try {
-//       const response = await axios.get(`${API_BASE_URL}/notes/${noteId}`);
-//       return response.data;
-//     } catch (error) {
-//       console.error("Fetching the note failed: ", error); // Log the error to the console
-//       setError("An error occurred while fetching the note. Please try again.");
-//       return null;
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   // Handler for the search button click
-//   const handleSearch = () => {
-//     const results = notes.filter(note =>
-//       note.title.toLowerCase().includes(searchTerm.toLowerCase())
-//     );
-//     setFilteredNotes(results);
-//   };
-
-//   const handleEditNote = async (noteId) => {
-//     const note = await fetchNote(noteId);
-//     if (note) {
-//       setIsCreatingNewNote(false);
-//       setEditingNoteId(noteId);
-//     }
-//   };
-
-//   const handleCreateNewNote = () => {
-//     setIsCreatingNewNote(true);
-//     setEditingNoteId(null);
-//   };
-
-//   const handleSaveNote = () => {
-//     setIsCreatingNewNote(false);
-//     setEditingNoteId(null);
-//     fetchNotes();
-//   };
-
-//   return (
-//     <div>
-//       <h1>Notebook Project</h1>
-
-//       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-//         <input
-//           type="text"
-//           placeholder="Search notes..."
-//           value={searchTerm}
-//           onChange={(e) => setSearchTerm(e.target.value)}
-//         />
-//         <button onClick={handleSearch} style={{ marginLeft: '5px' }}>
-//           <FontAwesomeIcon icon={faSearch} />
-//         </button>
-//       </div>
-
-//       {isLoading && <p>Loading...</p>}
-//       {error && <p style={{ color: 'red' }}>{error}</p>}
-
-//       {/* Search Results Section */}
-//       <div>
-//         <h2>Search Results</h2>
-//         <ul>
-//           {filteredNotes.map(note => (
-//             <li key={note.id}>
-//               <h3>{note.title}</h3>
-//               <p>{note.content}</p>
-//               <button onClick={() => handleEditNote(note.id)}>Edit</button>
-//             </li>
-//           ))}
-//         </ul>
-//       </div>
-
-//       <button onClick={handleCreateNewNote} style={{ marginTop: '10px', display: 'block' }}>
-//         Create New Note
-//       </button>
-
-//       {isCreatingNewNote && <EditNote mode="create" onSave={handleSaveNote} />}
-//       {editingNoteId && !isCreatingNewNote && (
-//         <EditNote noteId={editingNoteId} onSave={handleSaveNote} />
-//       )}
-//       <UploadFile />
-//     </div>
-//   );
-// };
-
-// export default Home;
-
-
-// the below is with cognito ################################################################################################
-
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-
-// function Home() {
-//   const [notes, setNotes] = useState([]); // State for storing notes
-//   const [searchTerm, setSearchTerm] = useState(''); // State for storing search term
-
-//   useEffect(() => {
-//     // Fetch notes data from an API
-//     const fetchNotes = async () => {
-//       try {
-//         const response = await axios.get('https://x6rhrkzq20.execute-api.ca-central-1.amazonaws.com/api/notes');
-//         setNotes(response.data);
-//       } catch (error) {
-//         console.error('Error fetching notes:', error);
-//       }
-//     };
-
-//     fetchNotes(); // Call the fetchNotes function
-
-//     console.log("Home component mounted"); // Log a message when the component is mounted
-//     // Additional initialization code can be added here
-
-//   }, []); // Run this effect only once on component mount
-
-//   const filteredNotes = notes.filter(note =>
-//     note.title.toLowerCase().includes(searchTerm.toLowerCase())
-//   ); // Filter notes based on the search term
-
-//   return (
-//     <div>
-//       <h1>Samander Notebook Project</h1>
-//       <p>Instructions on how to use the notebook...</p>
-
-//       <input
-//         type="text"
-//         placeholder="Search notes..."
-//         value={searchTerm}
-//         onChange={(e) => setSearchTerm(e.target.value)} // Update the search term as the user types
-//       />
-
-//       <ul>
-//         {filteredNotes.map(note => (
-//           <li key={note.id}>
-//             <h3>{note.title}</h3>
-//             <p>{note.content}</p>
-//           </li>
-//         ))}
-//       </ul>
-
-//       <a href="/login">Login</a>
-//        ## Provide a link to the login page
-//     </div>
-//   );
-// }
-
-// export default Home; // Export the Home component

@@ -1,17 +1,15 @@
 import { CognitoUserPool } from 'amazon-cognito-identity-js';
 
+// Define the pool data with UserPoolId and ClientId from environment variables
 const poolData = {
-  UserPoolId: process.env.REACT_APP_COGNITO_USER_POOL_ID, 
-  ClientId: process.env.REACT_APP_COGNITO_USER_POOL_CLIENT_ID, 
+  UserPoolId: process.env.REACT_APP_COGNITO_USER_POOL_ID,
+  ClientId: process.env.REACT_APP_COGNITO_USER_POOL_CLIENT_ID,
 };
 
-// Create the user pool instance with the pool data
+// Create a new Cognito User Pool instance using the pool data
 const userPool = new CognitoUserPool(poolData);
 
-// Optional: Console log for debugging purposes.
+// Output environment variables for debugging purposes
 console.log("Environment Variables:", `UserPoolId: ${process.env.REACT_APP_COGNITO_USER_POOL_ID}`, `ClientId: ${process.env.REACT_APP_COGNITO_USER_POOL_CLIENT_ID}`);
 
 export default userPool;
-
-
-

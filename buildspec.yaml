@@ -3,19 +3,23 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      # Preparation steps before building or testing
       - echo "Preparing for tests..."
+      # Debugging commands to check the current directory and its contents
       - pwd  # Print current working directory to verify path
       - ls -l # List files in the current directory for debugging
+      # Conditional execution: Check if the updated_outputs.env file exists for importing environment variables
       - |
-        if [ -f ./updated_outputs.env ]; then 
+        if [ -f ./updated_outputs.env ]; then
           cat ./updated_outputs.env  # Debug: view file content
           source ./updated_outputs.env
           echo "Imported API URL: $REACT_APP_API_BASE_URL"
-        else 
+        else
           echo "updated_outputs.env does not exist, skipping..."
         fi
   build:
     commands:
+    # testing the API of the application
       - |
         echo "Running API tests..."
         if [ ! -z "$REACT_APP_API_BASE_URL" ]; then
@@ -32,4 +36,5 @@ phases:
         fi
   post_build:
     commands:
-      - echo "API testing completed on `date`"
+      # Concluding message indicating the end of tests
+      - echo "API testing completed on `date`"  # Use backticks to execute the `date` command and print the current date and time
