@@ -1,0 +1,11 @@
+{
+  "version": "2.0",
+  "app_name": "Serverless_web",
+  "stages": {
+    "dev": {
+      "api_gateway_stage": "api",
+      "manage_iam_role": false,
+      "iam_role_arn": "arn:aws:iam::247867391235:role/ChaliceLambdaExecutionRoleProd"
+    }
+  }
+}
